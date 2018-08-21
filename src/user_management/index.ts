@@ -1,1 +1,2 @@
-export * from './controllers/user_management';
+export * from './controller/controller';
+export * from './api/api';
