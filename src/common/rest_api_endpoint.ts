@@ -1,10 +1,33 @@
 import { Context } from 'koa';
 import { HttpError } from 'http-errors';
 
+/**
+ * The RestApiEndpoint class utilizes the Koa framework to handle all
+ * requests, responses, and errors. All of the Ninsho rest api endpoints inherit from this class.
+ *
+ * Koa context details:
+ * https://koajs.com/#context
+ */
 export abstract class RestApiEndpoint {
 
+  /**
+   * A before hook function can be set that will run before performing the requested
+   * auth0 operation. Data returned by this function will be added to the context state.
+   * e.g. (ctx.state.beforeHookData)
+   */
   public beforeHook: (ctx: Context) => Promise<any> = null;
+
+  /**
+   * An after hook function can be set that will run after performing the requested auth0 operation.
+   * Data returned by the before hook can be accessed here. If specified, the after hook function
+   * must handle responses back to the client.
+   */
   public afterHook: (ctx: Context) => Promise<void> = null;
+
+  /**
+   * An error handler function can be set that will run if the requested auth0 operation failed.
+   * If specified, the function must handle the error response back to the client.
+   */
   public errorHandler: (ctx: Context, error: HttpError) => Promise<void> = null;
 
   public static validateBody(ctx: Context): void {

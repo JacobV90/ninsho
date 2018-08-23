@@ -5,9 +5,9 @@ import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import { ICreateUserBeforeHookData } from './create_user_api';
+import { CreateUserBeforeHookData } from './create_user_api';
 import { HttpError } from 'http-errors';
-import { Ninsho } from '../../app';
+import { Ninsho } from '../../ninsho';
 const config = require('../../../config.json').auth0;
 
 describe('create_user_api.spec.ts', function () {
@@ -105,7 +105,7 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', function (done) {
       // setup
-      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
           attachToUser: true,
           test: 'test',
@@ -145,7 +145,7 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', function (done) {
       // setup
-      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
           attachToUser: true,
           propsToAdd: ['address', 'married', 'mothersMaidenName', 'friends', 'age'],
@@ -209,7 +209,7 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', function (done) {
       // setup
-      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
           token: 'test token',
         };
