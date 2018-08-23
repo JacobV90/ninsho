@@ -2,10 +2,10 @@
 
 import 'mocha';
 import { expect } from 'chai';
-import { Auth0Config, UserManagementController } from './controller';
+import { UserManagementController } from './controller';
 import { UserData, User } from 'auth0';
 import { HttpError } from 'http-errors';
-const config: Auth0Config = require('../../../config.json').auth0;
+import { auth0 } from '../../app';
 
 describe('Create User', () => {
   const userOneEmail: string = 'jvtalon901@yahoo.com';
@@ -14,7 +14,7 @@ describe('Create User', () => {
   let userId: string;
 
   before(() => {
-    userManagement = new UserManagementController(config);
+    userManagement = new UserManagementController(auth0);
   });
 
   it('should create a new user provided valid parameters', async () => {
@@ -50,6 +50,23 @@ describe('Create User', () => {
     });
   });
 
+  it('should NOT create a new user provided a password that does not meet strength requirements', (done) => {
+    const userData: UserData = {
+      email: userTwoEmail,
+      password: 'test',
+    };
+
+    userManagement.createUser(userData)
+    .then(() => {
+      expect.fail();
+    })
+    .catch((error: HttpError) => {
+      expect(error.statusCode).to.equal(400);
+      expect(error.message).to.equal('PasswordStrengthError: Password is too weak');
+      done();
+    });
+  });
+
   it('should NOT create new user provided missing parameters (email)', (done) => {
     const userData: UserData = {
       password: 'testPassword123',
@@ -66,10 +83,10 @@ describe('Create User', () => {
     });
   });
 
-  it('should NOT create a new user provided a password that does not meet requirements', (done) => {
+  it('should NOT create new user provided an invalid email', (done) => {
     const userData: UserData = {
-      email: userTwoEmail,
-      password: 'test',
+      email: 'thisisnotvalid',
+      password: 'testPassword123',
     };
 
     userManagement.createUser(userData)
@@ -78,7 +95,8 @@ describe('Create User', () => {
     })
     .catch((error: HttpError) => {
       expect(error.statusCode).to.equal(400);
-      expect(error.message).to.equal('PasswordStrengthError: Password is too weak');
+      expect(error.message).to.equal('Payload validation error: \'Object didn\'t pass validation for format email: ' +
+        userData.email + '\' on property email (The user\'s email).');
       done();
     });
   });
