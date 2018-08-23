@@ -1,7 +1,6 @@
 import { CreateUserData, ManagementClient, User, UserData } from 'auth0';
 import { Auth0 } from '../../common/auth0';
 
-
 export interface DeleteUserData {
   id: string;
 }
