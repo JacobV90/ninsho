@@ -9,7 +9,8 @@
     "auth0": "^2.12.0"
   },
   "scripts": {
-    "watch-server": "nodemon --watch 'src/**/*' -e ts,tsx --exec 'ts-node' ./src/server.ts"
+    "watch-server": "nodemon --watch 'src/**/*' -e ts,tsx --exec 'ts-node' ./src/server.ts",
+    "docs": "typedoc --options ./typedoc.js"
   },
   "devDependencies": {
     "@types/auth0": "^2.9.4",
@@ -32,6 +33,7 @@
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-airbnb": "^5.10.0",
+    "typedoc": "^0.12.0",
     "typescript": "^3.0.1"
   }
 }

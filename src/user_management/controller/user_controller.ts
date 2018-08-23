@@ -2,9 +2,16 @@ import { CreateUserData, ManagementClient, User, UserData } from 'auth0';
 import { Auth0 } from '../../common/auth0';
 
 export interface DeleteUserData {
+  /**
+   * The id of the user to be deleted
+   */
   id: string;
 }
 
+/**
+ * The UserManagementController uses Auth0's nodejs client to make the appropriate web calls
+ * to their server. Methods not listed here are not supported by the Ninsho api service.
+ */
 export class UserManagementController{
 
   private managementClient: ManagementClient;

@@ -1,5 +1,5 @@
 import * as Koa from 'koa';
-import { Ninsho } from './app';
+import { Ninsho } from './';
 const config = require('../config.json').auth0;
 
 const app = new Koa();
