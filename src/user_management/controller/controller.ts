@@ -1,10 +1,6 @@
 import { CreateUserData, ManagementClient, User, UserData } from 'auth0';
+import { Auth0 } from '../../common/auth0';
 
-export interface Auth0Config {
-  token: string;
-  domain: string;
-  connection?: string;
-}
 
 export interface DeleteUserData {
   id: string;
@@ -15,9 +11,9 @@ export class UserManagementController{
   private managementClient: ManagementClient;
   private connection: string;
 
-  constructor(config: Auth0Config) {
-    this.managementClient = new ManagementClient(config);
-    this.connection = config.connection || 'Username-Password-Authentication';
+  constructor(auth0: Auth0) {
+    this.managementClient = auth0.managementClient;
+    this.connection = auth0.connection;
     return this;
   }
 
@@ -40,5 +36,4 @@ export class UserManagementController{
       throw error;
     }
   }
-
 }
