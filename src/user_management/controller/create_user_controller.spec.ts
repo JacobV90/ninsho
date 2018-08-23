@@ -1,8 +1,9 @@
 /* tslint:disable:max-line-length*/
+/* tslint:disable:ter-prefer-arrow-callback*/
 
 import 'mocha';
 import { expect } from 'chai';
-import { UserManagementController } from './controller';
+import { UserManagementController } from './user_controller';
 import { UserData, User } from 'auth0';
 import { HttpError } from 'http-errors';
 import { auth0 } from '../../app';
@@ -17,7 +18,7 @@ describe('Create User', () => {
     userManagement = new UserManagementController(auth0);
   });
 
-  it('should create a new user provided valid parameters', async () => {
+  it('should create a new user provided valid parameters', async function () {
     const userData: UserData = {
       email: userOneEmail,
       password: 'testPassword123',
@@ -34,7 +35,7 @@ describe('Create User', () => {
     });
   });
 
-  it('should NOT create a new user provided missing parameters (password)', (done) => {
+  it('should NOT create a new user provided missing parameters (password)', function (done) {
     const userData: UserData = {
       email: userOneEmail,
     };
@@ -50,7 +51,7 @@ describe('Create User', () => {
     });
   });
 
-  it('should NOT create a new user provided a password that does not meet strength requirements', (done) => {
+  it('should NOT create a new user provided a password that does not meet strength requirements', function (done) {
     const userData: UserData = {
       email: userTwoEmail,
       password: 'test',
@@ -67,7 +68,7 @@ describe('Create User', () => {
     });
   });
 
-  it('should NOT create new user provided missing parameters (email)', (done) => {
+  it('should NOT create new user provided missing parameters (email)', function (done) {
     const userData: UserData = {
       password: 'testPassword123',
     };
@@ -83,7 +84,7 @@ describe('Create User', () => {
     });
   });
 
-  it('should NOT create new user provided an invalid email', (done) => {
+  it('should NOT create new user provided an invalid email', function (done) {
     const userData: UserData = {
       email: 'thisisnotvalid',
       password: 'testPassword123',

@@ -3,21 +3,17 @@
 import { UserManagementController } from '../';
 import { User, UserData } from 'auth0';
 import { Context } from 'koa';
-import { HttpError } from 'http-errors';
-import { Api } from '../../common/api';
+import { RestApiEndpoint } from '../../common/rest_api_endpoint';
 
-export interface IBeforeHookData{
+export interface ICreateUserBeforeHookData {
   attachToUser?: boolean;
   propsToAdd?: string[];
   [propName: string]: any;
 }
 
-export class CreateUserApi extends Api{
+export class CreateUserApi extends RestApiEndpoint{
 
-  public beforeHook: (ctx: Context, next: () => Promise<any>) => Promise<IBeforeHookData> = null;
-  public afterHook: (ctx: Context, next: () => Promise<any>) => Promise<void> = null;
-  public errorHandler: (ctx: Context, error: HttpError) => Promise<void> = null;
-
+  public beforeHook: (ctx: Context) => Promise<ICreateUserBeforeHookData> = null;
   private controller: UserManagementController;
 
   constructor(controller: UserManagementController) {
@@ -26,40 +22,37 @@ export class CreateUserApi extends Api{
   }
 
   public async invoke(ctx: Context, next: () => Promise<any>): Promise<void> {
-    this.validateBody(ctx);
+    RestApiEndpoint.validateBody(ctx);
+    await this.handleBeforeHook(ctx);
 
-    let beforeHookData: IBeforeHookData = {};
+    const userData: UserData = ctx.request.body as UserData;
     let user: User = {};
-
-    if (this.beforeHook) {
-      beforeHookData = await this.beforeHook(ctx, next);
-      (ctx.state as any)['beforeHookData'] = beforeHookData;
-    }
-
-    const requestParams: any = ctx.request.body;
-    requestParams['user_metadata'] = {};
-
-    if (beforeHookData.attachToUser) {
-      for (const property in beforeHookData) {
-        if (!beforeHookData.propsToAdd || beforeHookData.propsToAdd.includes(property + '')) {
-          (requestParams.user_metadata as any)[property + ''] = (beforeHookData as any)[property + ''];
-        }
-      }
-    }
-    const userData: UserData = requestParams as UserData;
 
     try {
       user = await this.controller.createUser(userData);
     } catch (error) {
-      return await this.errorHandler ?
-        this.errorHandler(ctx, error) :
-        ctx.throw(error.statusCode, error);
+      await this.handleError(ctx, error);
     }
 
-    if (this.afterHook) {
-      (ctx.state as any)['user'] = user;
-      return await this.afterHook(ctx, next);
+    await this.handleResponse(ctx, user);
+  }
+
+  protected async handleBeforeHook(ctx: Context): Promise<void> {
+    if (this.beforeHook) {
+      const beforeHookData: ICreateUserBeforeHookData = await this.beforeHook(ctx);
+      (ctx.state as any)['beforeHookData'] = beforeHookData;
+
+      if (beforeHookData.attachToUser) {
+        const requestBody: any = ctx.request.body;
+        requestBody['user_metadata'] = {};
+
+        for (const property in beforeHookData) {
+          if (!beforeHookData.propsToAdd || beforeHookData.propsToAdd.includes(property + '')) {
+            (requestBody.user_metadata as any)[property + ''] = (beforeHookData as any)[property + ''];
+          }
+        }
+        (ctx.request.body as any)['user_metadata'] = requestBody.user_metadata;
+      }
     }
-    ctx.body = user;
   }
 }

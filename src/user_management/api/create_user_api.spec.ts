@@ -1,15 +1,18 @@
 /* tslint:disable:max-line-length*/
+/* tslint:disable:ter-prefer-arrow-callback*/
 
 import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
 import { userAuthApp, userController, userApi } from '../../app';
-import { IBeforeHookData } from './create_user_api';
+import { ICreateUserBeforeHookData } from './create_user_api';
 import { HttpError } from 'http-errors';
 
-describe('create_user_api.spec.ts', () => {
-  describe('Create User Api', () => {
+describe('create_user_api.spec.ts', function () {
+  this.timeout(5000);
+
+  describe('Create User Api', function () {
 
     let app: Koa;
     let server: any;
@@ -25,26 +28,26 @@ describe('create_user_api.spec.ts', () => {
       await server.close();
     });
 
-    it('should create a new user provided valid parameters', async () => {
-      let userId: string = '';
-      await request(server)
+    it('should create a new user provided valid parameters', function (done) {
+      request(server)
       .post('/users')
       .send({
         email: userOneEmail,
         password: 'testPassword123',
       })
-      .then((response) => {
+      .then(async (response) => {
         expect(response.status).to.equal(200);
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
-        userId = response.body.user_id;
+
+        await userController.deleteUser({ id: response.body.user_id });
+        done();
       });
-      await userController.deleteUser({ id: userId });
     });
 
-    it('should NOT create a new user provided an invalid email', async () => {
+    it('should NOT create a new user provided an invalid email', function (done) {
       const invalidEmail: string = 'notvalid';
-      await request(server)
+      request(server)
       .post('/users')
       .send({
         email: invalidEmail,
@@ -56,11 +59,12 @@ describe('create_user_api.spec.ts', () => {
           invalidEmail + '\' on property email (The user\'s email).');
         expect(response.body.email).to.be.undefined;
         expect(response.body.user_id).to.be.undefined;
+        done();
       });
     });
 
-    it('should NOT create a new user provided a password that does not meet strength requirements', async () => {
-      await request(server)
+    it('should NOT create a new user provided a password that does not meet strength requirements', function (done) {
+      request(server)
       .post('/users')
       .send({
         email: userOneEmail,
@@ -71,6 +75,20 @@ describe('create_user_api.spec.ts', () => {
         expect(response.text).to.equal('PasswordStrengthError: Password is too weak');
         expect(response.body.email).to.be.undefined;
         expect(response.body.user_id).to.be.undefined;
+        done();
+      });
+    });
+
+    it('should NOT create a new user provided no parameters', function (done) {
+      request(server)
+      .post('/users')
+      .send({})
+      .then((response) => {
+        expect(response.status).to.equal(400);
+        expect(response.text).to.equal('request body is empty');
+        expect(response.body.email).to.be.undefined;
+        expect(response.body.user_id).to.be.undefined;
+        done();
       });
     });
   });
@@ -81,9 +99,9 @@ describe('create_user_api.spec.ts', () => {
     let server: any;
     const userOneEmail: string = 'jvtalon906@yahoo.com';
 
-    it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', async () => {
+    it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', function (done) {
       // setup
-      const beforeHook = async (): Promise<IBeforeHookData> => {
+      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
         return {
           attachToUser: true,
           test: 'test',
@@ -91,7 +109,7 @@ describe('create_user_api.spec.ts', () => {
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
-        ctx.body = ctx.state.user;
+        ctx.body = ctx.state.data;
       };
 
       app = new Koa();
@@ -102,28 +120,27 @@ describe('create_user_api.spec.ts', () => {
       server = app.listen(3000);
       // end setup
 
-      let userId: string = '';
-      await request(server)
+      request(server)
       .post('/users')
       .send({
         email: userOneEmail,
         password: 'testPassword123',
       })
-      .then((response) => {
+      .then(async (response) => {
         expect(response.status).to.equal(200);
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
         expect(response.body.user_metadata.test).to.equal('test');
-        userId = response.body.user_id;
-      });
-      await userController.deleteUser({ id: userId });
 
-      await server.close();
+        await userController.deleteUser({ id: response.body.user_id });
+        await server.close();
+        done();
+      });
     });
 
-    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', async () => {
+    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', function(done) {
       // setup
-      const beforeHook = async (): Promise<IBeforeHookData> => {
+      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
         return {
           attachToUser: true,
           propsToAdd: ['address', 'married', 'mothersMaidenName', 'friends', 'age'],
@@ -146,7 +163,7 @@ describe('create_user_api.spec.ts', () => {
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
         expect(ctx.state.beforeHookData.access.token).to.equal('test token');
         expect(ctx.state.beforeHookData.access.expiration).to.equal(4800);
-        ctx.body = ctx.state.user;
+        ctx.body = ctx.state.data;
       };
 
       app = new Koa();
@@ -157,14 +174,13 @@ describe('create_user_api.spec.ts', () => {
       server = app.listen(3000);
       // end setup
 
-      let userId: string = '';
-      await request(server)
+      request(server)
       .post('/users')
       .send({
         email: userOneEmail,
         password: 'testPassword123',
       })
-      .then((response) => {
+      .then(async (response) => {
         expect(response.status).to.equal(200);
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
@@ -178,16 +194,16 @@ describe('create_user_api.spec.ts', () => {
         expect(response.body.user_metadata.friends.length).to.equal(4);
         expect(response.body.user_metadata.access).to.be.undefined;
 
-        userId = response.body.user_id;
+        await userController.deleteUser({ id: response.body.user_id });
+        await server.close();
+        done();
       });
-      await userController.deleteUser({ id: userId });
 
-      await server.close();
     });
 
-    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', async () => {
+    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', function(done) {
       // setup
-      const beforeHook = async (): Promise<IBeforeHookData> => {
+      const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
         return {
           token: 'test token',
         };
@@ -195,7 +211,7 @@ describe('create_user_api.spec.ts', () => {
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
         expect(ctx.state.beforeHookData.token).to.equal('test token');
-        ctx.body = ctx.state.user;
+        ctx.body = ctx.state.data;
       };
 
       app = new Koa();
@@ -206,29 +222,29 @@ describe('create_user_api.spec.ts', () => {
       server = app.listen(3000);
       // end setup
 
-      let userId: string = '';
-      await request(server)
+      request(server)
       .post('/users')
       .send({
         email: userOneEmail,
         password: 'testPassword123',
       })
-      .then((response) => {
+      .then(async (response) => {
         expect(response.status).to.equal(200);
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
-        expect(response.body.user_metadata.token).to.be.undefined;
-        userId = response.body.user_id;
-      });
-      await userController.deleteUser({ id: userId });
+        expect(response.body.user_metadata).to.be.undefined;
 
-      await server.close();
+        await userController.deleteUser({ id: response.body.user_id });
+        await server.close();
+        done();
+      });
+
     });
   });
 
   describe('Create User Api w/Custom Error Handler', () => {
 
-    it('should NOT create a new user provided an invalid email and response with a custom error message', async () => {
+    it('should NOT create a new user provided an invalid email and response with a custom error message', function(done) {
       // setup
       const errorHandler = async (ctx: Koa.Context, error: HttpError): Promise<void> => {
         error.message = 'email is not in a valid format';
@@ -244,19 +260,21 @@ describe('create_user_api.spec.ts', () => {
       const server = app.listen(3000);
       // end setup
 
-      await request(server)
+      request(server)
       .post('/users')
       .send({
         email,
         password,
       })
-      .then((response) => {
+      .then(async (response) => {
         expect(response.status).to.equal(400);
         expect(response.text).to.equal('email is not in a valid format');
         expect(response.body.email).to.be.undefined;
         expect(response.body.user_id).to.be.undefined;
+
+        await server.close();
+        done();
       });
-      await server.close();
     });
 
   });
