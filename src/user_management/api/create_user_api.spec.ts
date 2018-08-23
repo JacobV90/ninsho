@@ -5,9 +5,10 @@ import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import { userAuthApp, userController, userApi } from '../../app';
 import { ICreateUserBeforeHookData } from './create_user_api';
 import { HttpError } from 'http-errors';
+import { Ninsho } from '../../app';
+const config = require('../../../config.json').auth0;
 
 describe('create_user_api.spec.ts', function () {
   this.timeout(5000);
@@ -15,12 +16,14 @@ describe('create_user_api.spec.ts', function () {
   describe('Create User Api', function () {
 
     let app: Koa;
+    let ninsho: Ninsho;
     let server: any;
     const userOneEmail: string = 'jvtalon906@yahoo.com';
 
     before(() => {
       app = new Koa();
-      app.use(userAuthApp);
+      ninsho = new Ninsho(config);
+      app.use(ninsho.mountApi());
       server = app.listen(3000);
     });
 
@@ -40,7 +43,7 @@ describe('create_user_api.spec.ts', function () {
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
 
-        await userController.deleteUser({ id: response.body.user_id });
+        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
         done();
       });
     });
@@ -96,6 +99,7 @@ describe('create_user_api.spec.ts', function () {
   describe('Create User Api w/Hooks', () => {
 
     let app: Koa;
+    let ninsho: Ninsho;
     let server: any;
     const userOneEmail: string = 'jvtalon906@yahoo.com';
 
@@ -113,9 +117,10 @@ describe('create_user_api.spec.ts', function () {
       };
 
       app = new Koa();
-      userApi.createUser.beforeHook = beforeHook;
-      userApi.createUser.afterHook = afterHook;
-      app.use(userAuthApp);
+      ninsho = new Ninsho(config);
+      ninsho.userApi.createUser.beforeHook = beforeHook;
+      ninsho.userApi.createUser.afterHook = afterHook;
+      app.use(ninsho.mountApi());
 
       server = app.listen(3000);
       // end setup
@@ -132,13 +137,13 @@ describe('create_user_api.spec.ts', function () {
         expect(response.body.user_id).to.not.be.undefined;
         expect(response.body.user_metadata.test).to.equal('test');
 
-        await userController.deleteUser({ id: response.body.user_id });
+        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
         await server.close();
         done();
       });
     });
 
-    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', function(done) {
+    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', function (done) {
       // setup
       const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
         return {
@@ -167,9 +172,10 @@ describe('create_user_api.spec.ts', function () {
       };
 
       app = new Koa();
-      userApi.createUser.beforeHook = beforeHook;
-      userApi.createUser.afterHook = afterHook;
-      app.use(userAuthApp);
+      ninsho = new Ninsho(config);
+      ninsho.userApi.createUser.beforeHook = beforeHook;
+      ninsho.userApi.createUser.afterHook = afterHook;
+      app.use(ninsho.mountApi());
 
       server = app.listen(3000);
       // end setup
@@ -194,14 +200,14 @@ describe('create_user_api.spec.ts', function () {
         expect(response.body.user_metadata.friends.length).to.equal(4);
         expect(response.body.user_metadata.access).to.be.undefined;
 
-        await userController.deleteUser({ id: response.body.user_id });
+        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
         await server.close();
         done();
       });
 
     });
 
-    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', function(done) {
+    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', function (done) {
       // setup
       const beforeHook = async (): Promise<ICreateUserBeforeHookData> => {
         return {
@@ -215,9 +221,10 @@ describe('create_user_api.spec.ts', function () {
       };
 
       app = new Koa();
-      userApi.createUser.beforeHook = beforeHook;
-      userApi.createUser.afterHook = afterHook;
-      app.use(userAuthApp);
+      ninsho = new Ninsho(config);
+      ninsho.userApi.createUser.beforeHook = beforeHook;
+      ninsho.userApi.createUser.afterHook = afterHook;
+      app.use(ninsho.mountApi());
 
       server = app.listen(3000);
       // end setup
@@ -234,7 +241,7 @@ describe('create_user_api.spec.ts', function () {
         expect(response.body.user_id).to.not.be.undefined;
         expect(response.body.user_metadata).to.be.undefined;
 
-        await userController.deleteUser({ id: response.body.user_id });
+        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
         await server.close();
         done();
       });
@@ -244,7 +251,7 @@ describe('create_user_api.spec.ts', function () {
 
   describe('Create User Api w/Custom Error Handler', () => {
 
-    it('should NOT create a new user provided an invalid email and response with a custom error message', function(done) {
+    it('should NOT create a new user provided an invalid email and response with a custom error message', function (done) {
       // setup
       const errorHandler = async (ctx: Koa.Context, error: HttpError): Promise<void> => {
         error.message = 'email is not in a valid format';
@@ -254,8 +261,9 @@ describe('create_user_api.spec.ts', function () {
       const password: string = 'testPassword123';
 
       const app: Koa = new Koa();
-      userApi.createUser.errorHandler = errorHandler;
-      app.use(userAuthApp);
+      const ninsho: Ninsho = new Ninsho(config);
+      ninsho.userApi.createUser.errorHandler = errorHandler;
+      app.use(ninsho.mountApi());
 
       const server = app.listen(3000);
       // end setup

@@ -13,7 +13,7 @@ export class UserManagementApi {
     this.router = new Router();
     this.createUser = createUserApi;
     this.router.post(
-      '/',
+      '/users',
       (ctx: Context, next: () => Promise<any>) => createUserApi.invoke(ctx, next));
   }
 

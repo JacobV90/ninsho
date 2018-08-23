@@ -6,7 +6,8 @@ import { expect } from 'chai';
 import { UserManagementController } from './user_controller';
 import { UserData, User } from 'auth0';
 import { HttpError } from 'http-errors';
-import { auth0 } from '../../app';
+import { Auth0Config, Auth0 } from '../../common/auth0';
+const config: Auth0Config = require('../../../config.json').auth0;
 
 describe('Create User', () => {
   const userOneEmail: string = 'jvtalon901@yahoo.com';
@@ -15,7 +16,7 @@ describe('Create User', () => {
   let userId: string;
 
   before(() => {
-    userManagement = new UserManagementController(auth0);
+    userManagement = new UserManagementController(new Auth0(config));
   });
 
   it('should create a new user provided valid parameters', async function () {
