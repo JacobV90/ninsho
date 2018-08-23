@@ -5,7 +5,8 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
 import { userAuthApp, userController, userApi } from '../../app';
-import { IBeforeCreateUserResults } from './api';
+import { IBeforeHookData } from './create_user_api';
+import { HttpError } from 'http-errors';
 
 describe('create_user_api.spec.ts', () => {
   describe('Create User Api', () => {
@@ -82,7 +83,7 @@ describe('create_user_api.spec.ts', () => {
 
     it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', async () => {
       // setup
-      const beforeHook = async (): Promise<IBeforeCreateUserResults> => {
+      const beforeHook = async (): Promise<IBeforeHookData> => {
         return {
           attachToUser: true,
           test: 'test',
@@ -94,8 +95,8 @@ describe('create_user_api.spec.ts', () => {
       };
 
       app = new Koa();
-      userApi.beforeCreateNewUserHook(beforeHook);
-      userApi.afterCreateNewUserHook(afterHook);
+      userApi.createUser.beforeHook = beforeHook;
+      userApi.createUser.afterHook = afterHook;
       app.use(userAuthApp);
 
       server = app.listen(3000);
@@ -122,7 +123,7 @@ describe('create_user_api.spec.ts', () => {
 
     it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', async () => {
       // setup
-      const beforeHook = async (): Promise<IBeforeCreateUserResults> => {
+      const beforeHook = async (): Promise<IBeforeHookData> => {
         return {
           attachToUser: true,
           propsToAdd: ['address', 'married', 'mothersMaidenName', 'friends', 'age'],
@@ -143,14 +144,14 @@ describe('create_user_api.spec.ts', () => {
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
-        expect(ctx.state.beforeResults.access.token).to.equal('test token');
-        expect(ctx.state.beforeResults.access.expiration).to.equal(4800);
+        expect(ctx.state.beforeHookData.access.token).to.equal('test token');
+        expect(ctx.state.beforeHookData.access.expiration).to.equal(4800);
         ctx.body = ctx.state.user;
       };
 
       app = new Koa();
-      userApi.beforeCreateNewUserHook(beforeHook);
-      userApi.afterCreateNewUserHook(afterHook);
+      userApi.createUser.beforeHook = beforeHook;
+      userApi.createUser.afterHook = afterHook;
       app.use(userAuthApp);
 
       server = app.listen(3000);
@@ -186,20 +187,20 @@ describe('create_user_api.spec.ts', () => {
 
     it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', async () => {
       // setup
-      const beforeHook = async (): Promise<IBeforeCreateUserResults> => {
+      const beforeHook = async (): Promise<IBeforeHookData> => {
         return {
           token: 'test token',
         };
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
-        expect(ctx.state.beforeResults.token).to.equal('test token');
+        expect(ctx.state.beforeHookData.token).to.equal('test token');
         ctx.body = ctx.state.user;
       };
 
       app = new Koa();
-      userApi.beforeCreateNewUserHook(beforeHook);
-      userApi.afterCreateNewUserHook(afterHook);
+      userApi.createUser.beforeHook = beforeHook;
+      userApi.createUser.afterHook = afterHook;
       app.use(userAuthApp);
 
       server = app.listen(3000);
@@ -223,5 +224,40 @@ describe('create_user_api.spec.ts', () => {
 
       await server.close();
     });
+  });
+
+  describe('Create User Api w/Custom Error Handler', () => {
+
+    it('should NOT create a new user provided an invalid email and response with a custom error message', async () => {
+      // setup
+      const errorHandler = async (ctx: Koa.Context, error: HttpError): Promise<void> => {
+        error.message = 'email is not in a valid format';
+        ctx.throw(error.statusCode, error);
+      };
+      const email: string = 'not valid';
+      const password: string = 'testPassword123';
+
+      const app: Koa = new Koa();
+      userApi.createUser.errorHandler = errorHandler;
+      app.use(userAuthApp);
+
+      const server = app.listen(3000);
+      // end setup
+
+      await request(server)
+      .post('/users')
+      .send({
+        email,
+        password,
+      })
+      .then((response) => {
+        expect(response.status).to.equal(400);
+        expect(response.text).to.equal('email is not in a valid format');
+        expect(response.body.email).to.be.undefined;
+        expect(response.body.user_id).to.be.undefined;
+      });
+      await server.close();
+    });
+
   });
 });
