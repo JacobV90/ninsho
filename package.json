@@ -10,7 +10,9 @@
   },
   "scripts": {
     "watch-server": "nodemon --watch 'src/**/*' -e ts,tsx --exec 'ts-node' ./src/server.ts",
-    "docs": "typedoc --options ./typedoc.js"
+    "docs": "typedoc --options ./typedoc.js",
+    "unit-test": "mocha './test/**/unit/*'",
+    "int-test": "mocha './test/**/integration/*'"
   },
   "devDependencies": {
     "@types/auth0": "^2.9.4",
