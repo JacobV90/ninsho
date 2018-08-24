@@ -26,14 +26,16 @@ describe('create_user_provider.spec.ts', function () {
       };
 
       const user: User = await userManagement.createUser(userData);
-      userId = user.user_id;
-      expect(user).to.not.be.undefined;
-      expect(user.email).to.equal(userOneEmail);
+      if (user.user_id) {
+        userId = user.user_id;
+        expect(user).to.not.be.undefined;
+        expect(user.email).to.equal(userOneEmail);
 
-      // remove test user from database
-      await userManagement.deleteUser({
-        id: userId,
-      });
+        // remove test user from database
+        await userManagement.deleteUser({
+          id: userId,
+        });
+      }
     });
 
     it('should NOT create a new user provided missing parameters (password)', function (done) {

@@ -1,19 +1,18 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "watch": true,
     "module": "commonjs",
-    "target": "es2017",
+    "target": "es2016",
     "noImplicitAny": true,
     "outDir": "./dist",
-    "sourceMap": true,
-    "inlineSources": true,
-    "allowJs": true
+    "strict": true,
+    "declaration": true,
+    "moduleResolution": "node"
   },
   "include": [
     "./src/**/*"
   ],
   "exclude": [
-    "./src/**/*.spec.ts"
+    "./test/**/*"
   ]
 }
