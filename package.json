@@ -2,7 +2,7 @@
   "name": "koa-auth0-middleware",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:JacobV90/koa-auth0-middleware.git",
+  "repository": "git@github.com:JacobV90/ninsho.git",
   "author": "Jacob Veal <jacobveal90@gmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -11,8 +11,8 @@
   "scripts": {
     "watch-server": "nodemon --watch 'src/**/*' -e ts,tsx --exec 'ts-node' ./src/server.ts",
     "docs": "typedoc --options ./typedoc.js",
-    "unit-test": "mocha './test/**/unit/*'",
-    "int-test": "mocha './test/**/integration/*'"
+    "test": "nyc mocha test/**/**/*",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "devDependencies": {
     "@types/auth0": "^2.9.4",
@@ -25,17 +25,41 @@
     "@types/mocha": "^5.2.5",
     "@types/supertest": "^2.0.5",
     "chai": "^4.1.2",
+    "coveralls": "^3.0.2",
+    "istanbul": "^0.4.5",
     "koa": "^2.5.2",
     "koa-bodyparser": "^4.2.1",
     "koa-mount": "^3.0.0",
     "koa-router": "^7.4.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.3",
+    "nyc": "^12.0.2",
     "supertest": "^3.1.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-airbnb": "^5.10.0",
     "typedoc": "^0.12.0",
     "typescript": "^3.0.1"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "dist"
+    ],
+    "extension": [
+      ".js",
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
   }
 }
