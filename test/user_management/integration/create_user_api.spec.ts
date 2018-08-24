@@ -5,9 +5,9 @@ import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import { CreateUserBeforeHookData } from './create_user_api';
+import { CreateUserBeforeHookData } from '../../../src/user_management/api/create_user_api';
 import { HttpError } from 'http-errors';
-import { Ninsho } from '../../ninsho';
+import { Ninsho } from '../../../src/ninsho';
 const config = require('../../../config.json').auth0;
 
 describe('create_user_api.spec.ts', function () {
