@@ -1,0 +1,13 @@
+src/
+coverage/
+.nyc_output/
+test/
+.idea/
+config.json
+config.json.enc
+tsconfig.json
+tslint.json
+typedoc.js
+yarn.lock
+_config.yml
+.travis.yml

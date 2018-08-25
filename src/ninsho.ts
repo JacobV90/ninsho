@@ -16,14 +16,14 @@ export class Ninsho extends Koa {
   public userApi: UserManagementApi;
   public auth0: Auth0;
   public userManagement: UserManagementController;
-  private prefix: string;
+  private prefix: string = '/';
 
   /**
    *
    * @param {Auth0Config} config - contains the required information from the Auth0 application
    * @param {string} prefix - the route prefix that the api service will mount to
    */
-  constructor(config: Auth0Config, prefix?: string) {
+  constructor(config: Auth0Config, prefix = '/') {
     super();
     this.auth0 = new Auth0(config);
     this.userManagement = new UserManagementController(this.auth0);
@@ -39,6 +39,6 @@ export class Ninsho extends Koa {
   public mountApi(): Koa.Middleware {
     this.use(bodyParser());
     this.use(this.userApi.getRoutes());
-    return mount(this.prefix || '/', this);
+    return mount(this.prefix, this);
   }
 }
