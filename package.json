@@ -1,18 +1,42 @@
 {
-  "name": "koa-auth0-middleware",
+  "name": "ninsho",
   "version": "1.0.0",
-  "main": "index.js",
-  "repository": "git@github.com:JacobV90/ninsho.git",
+  "main": "dist/ninsho.js",
+  "types": "dist/ninsho.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JacobV90/ninsho.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JacobV90/ninsho/issues"
+  },
+  "homepage": "https://github.com/JacobV90/ninsho#readme",
+  "keywords": [
+    "authentication",
+    "user-management",
+    "auth0",
+    "koa",
+    "rest-api",
+    "middleware",
+    "microservice",
+    "backend"
+  ],
   "author": "Jacob Veal <jacobveal90@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "auth0": "^2.12.0"
+    "@types/sinon": "^5.0.1",
+    "auth0": "^2.12.0",
+    "koa": "^2.5.2",
+    "koa-bodyparser": "^4.2.1",
+    "koa-mount": "^3.0.0",
+    "koa-router": "^7.4.0"
   },
   "scripts": {
     "watch-server": "nodemon --watch 'src/**/*' -e ts,tsx --exec 'ts-node' ./src/server.ts",
     "docs": "typedoc --options ./typedoc.js",
     "test": "nyc mocha test/**/**/*",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/auth0": "^2.9.4",
@@ -26,14 +50,10 @@
     "@types/supertest": "^2.0.5",
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
-    "istanbul": "^0.4.5",
-    "koa": "^2.5.2",
-    "koa-bodyparser": "^4.2.1",
-    "koa-mount": "^3.0.0",
-    "koa-router": "^7.4.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.3",
     "nyc": "^12.0.2",
+    "sinon": "^6.1.5",
     "supertest": "^3.1.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",

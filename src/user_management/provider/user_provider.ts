@@ -35,9 +35,9 @@ export class UserManagementController{
     return user;
   }
 
-  public async deleteUser(userData: DeleteUserData): Promise<void> {
+  public async deleteUser(userId: DeleteUserData): Promise<void> {
     try {
-      await this.managementClient.deleteUser(userData);
+      await this.managementClient.deleteUser(userId);
     } catch (error) {
       throw error;
     }
