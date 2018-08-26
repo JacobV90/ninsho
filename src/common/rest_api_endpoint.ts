@@ -49,9 +49,11 @@ export abstract class RestApiEndpoint {
     ctx.throw(error.statusCode, error);
   }
 
-  protected async handleResponse(ctx: Context, data: any): Promise<void> {
+  protected async handleResponse(ctx: Context, data?: any): Promise<void> {
     if (this.afterHook) {
-      (ctx.state as any)['data'] = data;
+      if (data) {
+        (ctx.state as any)['data'] = data;
+      }
       return await this.afterHook(ctx);
     }
     ctx.body = data;

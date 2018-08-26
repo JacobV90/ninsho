@@ -5,10 +5,12 @@ import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import { CreateUserBeforeHookData } from '../../../src/user_management/api/create_user_api';
+import { CreateUserBeforeHookData } from '../../../src/user_management/api/';
 import { HttpError } from 'http-errors';
 import { Ninsho } from '../../../src/ninsho';
 import * as sinon from 'sinon';
+import { randomEmail, randomPassword } from '../../helpers/random_generator';
+
 const config = require('../../../config.json').auth0;
 
 describe('create_user_api.spec.ts', function () {
@@ -19,7 +21,7 @@ describe('create_user_api.spec.ts', function () {
     let app: Koa;
     let ninsho: Ninsho;
     let server: any;
-    const userOneEmail: string = 'jvtalon906@yahoo.com';
+    const userOneEmail: string = randomEmail();
 
     before(() => {
       app = new Koa();
@@ -37,7 +39,7 @@ describe('create_user_api.spec.ts', function () {
       .post('/users')
       .send({
         email: userOneEmail,
-        password: 'testPassword123',
+        password: randomPassword(),
       })
       .then(async (response) => {
         expect(response.status).to.equal(200);
@@ -55,7 +57,7 @@ describe('create_user_api.spec.ts', function () {
       .post('/users')
       .send({
         email: invalidEmail,
-        password: 'testPassword123',
+        password: randomPassword(),
       })
       .then((response) => {
         expect(response.status).to.equal(400);
@@ -102,10 +104,12 @@ describe('create_user_api.spec.ts', function () {
     let app: Koa;
     let ninsho: Ninsho;
     let server: any;
-    const userOneEmail: string = 'jvtalon906@yahoo.com';
+    const userTwoEmail: string = randomEmail();
+    const userThreeEmail: string = randomEmail();
+    const userFourEmail: string = randomEmail();
 
-    it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', function (done) {
-      // setup
+    it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', async function () {
+      // SETUP
       const beforeHookData: CreateUserBeforeHookData = {
         attachToUser: true,
         data: {
@@ -131,30 +135,27 @@ describe('create_user_api.spec.ts', function () {
       app.use(ninsho.mountApi());
 
       server = app.listen(3000);
-      // end setup
+      // END SETUP
 
-      request(server)
+      const response = await request(server)
       .post('/users')
       .send({
-        email: userOneEmail,
-        password: 'testPassword123',
-      })
-      .then(async (response) => {
-        expect(beforeHookSpy.returned(Promise.resolve(beforeHookData))).to.be.true;
-
-        expect(response.status).to.equal(200);
-        expect(response.body.email).to.equal(userOneEmail);
-        expect(response.body.user_id).to.not.be.undefined;
-        expect(response.body.user_metadata.test).to.equal('test');
-
-        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
-        await server.close();
-        done();
+        email: userTwoEmail,
+        password: randomPassword(),
       });
+
+      expect(beforeHookSpy.returned(Promise.resolve(beforeHookData))).to.be.true;
+      expect(response.status).to.equal(200);
+      expect(response.body.email).to.equal(userTwoEmail);
+      expect(response.body.user_id).to.not.be.undefined;
+      expect(response.body.user_metadata.test).to.equal('test');
+
+      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await server.close();
     });
 
-    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', function (done) {
-      // setup
+    it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', async function () {
+      // SETUP
       const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
           attachToUser: true,
@@ -190,37 +191,38 @@ describe('create_user_api.spec.ts', function () {
       app.use(ninsho.mountApi());
 
       server = app.listen(3000);
-      // end setup
+      // END SETUP
 
-      request(server)
+      const response = await request(server)
       .post('/users')
       .send({
-        email: userOneEmail,
-        password: 'testPassword123',
-      })
-      .then(async (response) => {
-        expect(response.status).to.equal(200);
-        expect(response.body.email).to.equal(userOneEmail);
-        expect(response.body.user_id).to.not.be.undefined;
-        expect(response.body.user_metadata.address.street).to.equal('random');
-        expect(response.body.user_metadata.address.state).to.equal('Iowa');
-        expect(response.body.user_metadata.address.zip).to.equal('52246');
-        expect(response.body.user_metadata.age).to.equal(27);
-        expect(response.body.user_metadata.married).to.equal(false);
-        expect(response.body.user_metadata.mothersMaidenName).to.equal('Smith');
-        expect(response.body.user_metadata.friends[0]).to.equal('Jeremy');
-        expect(response.body.user_metadata.friends.length).to.equal(4);
-        expect(response.body.user_metadata.access).to.be.undefined;
-
-        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
-        await server.close();
-        done();
+        email: userThreeEmail,
+        password: randomPassword(),
+        user_metadata: {
+          middleName: 'marie',
+        },
       });
 
+      expect(response.status).to.equal(200);
+      expect(response.body.email).to.equal(userThreeEmail);
+      expect(response.body.user_id).to.not.be.undefined;
+      expect(response.body.user_metadata.middleName).to.equal('marie');
+      expect(response.body.user_metadata.address.street).to.equal('random');
+      expect(response.body.user_metadata.address.state).to.equal('Iowa');
+      expect(response.body.user_metadata.address.zip).to.equal('52246');
+      expect(response.body.user_metadata.age).to.equal(27);
+      expect(response.body.user_metadata.married).to.equal(false);
+      expect(response.body.user_metadata.mothersMaidenName).to.equal('Smith');
+      expect(response.body.user_metadata.friends[0]).to.equal('Jeremy');
+      expect(response.body.user_metadata.friends.length).to.equal(4);
+      expect(response.body.user_metadata.access).to.be.undefined;
+
+      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await server.close();
     });
 
-    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', function (done) {
-      // setup
+    it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', async function () {
+      // SETUP
       const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
           data: {
@@ -241,31 +243,28 @@ describe('create_user_api.spec.ts', function () {
       app.use(ninsho.mountApi());
 
       server = app.listen(3000);
-      // end setup
+      // END SETUP
 
-      request(server)
+      const response = await request(server)
       .post('/users')
       .send({
-        email: userOneEmail,
+        email: userFourEmail,
         password: 'testPassword123',
-      })
-      .then(async (response) => {
-        expect(response.status).to.equal(200);
-        expect(response.body.email).to.equal(userOneEmail);
-        expect(response.body.user_id).to.not.be.undefined;
-        expect(response.body.user_metadata).to.be.undefined;
-
-        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
-        await server.close();
-        done();
       });
 
+      expect(response.status).to.equal(200);
+      expect(response.body.email).to.equal(userFourEmail);
+      expect(response.body.user_id).to.not.be.undefined;
+      expect(response.body.user_metadata).to.be.undefined;
+
+      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await server.close();
     });
   });
 
   describe('Create User Api w/Custom Error Handler', () => {
 
-    it('should NOT create a new user provided an invalid email and response with a custom error message', function (done) {
+    it('should NOT create a new user provided an invalid email and response with a custom error message', async function () {
       // setup
       const errorHandler = async (ctx: Koa.Context, error: HttpError): Promise<void> => {
         error.message = 'email is not in a valid format';
@@ -282,22 +281,19 @@ describe('create_user_api.spec.ts', function () {
       const server = app.listen(3000);
       // end setup
 
-      request(server)
+      const response = await request(server)
       .post('/users')
       .send({
         email,
         password,
-      })
-      .then(async (response) => {
-        expect(response.status).to.equal(400);
-        expect(response.text).to.equal('email is not in a valid format');
-        expect(response.body.email).to.be.undefined;
-        expect(response.body.user_id).to.be.undefined;
-
-        await server.close();
-        done();
       });
-    });
 
+      expect(response.status).to.equal(400);
+      expect(response.text).to.equal('email is not in a valid format');
+      expect(response.body.email).to.be.undefined;
+      expect(response.body.user_id).to.be.undefined;
+
+      await server.close();
+    });
   });
 });
