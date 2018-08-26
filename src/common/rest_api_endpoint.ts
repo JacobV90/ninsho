@@ -15,20 +15,20 @@ export abstract class RestApiEndpoint {
    * auth0 operation. Data returned by this function will be added to the context state.
    * e.g. (ctx.state.beforeHookData)
    */
-  public beforeHook: (ctx: Context) => Promise<any> = null;
+  public beforeHook?: (ctx: Context) => Promise<any>;
 
   /**
    * An after hook function can be set that will run after performing the requested auth0 operation.
    * Data returned by the before hook can be accessed here. If specified, the after hook function
    * must handle responses back to the client.
    */
-  public afterHook: (ctx: Context) => Promise<void> = null;
+  public afterHook?: (ctx: Context) => Promise<void>;
 
   /**
    * An error handler function can be set that will run if the requested auth0 operation failed.
    * If specified, the function must handle the error response back to the client.
    */
-  public errorHandler: (ctx: Context, error: HttpError) => Promise<void> = null;
+  public errorHandler?: (ctx: Context, error: HttpError) => Promise<void>;
 
   public static validateBody(ctx: Context): void {
     if (!ctx.request.body || Object.keys(ctx.request.body).length < 1) {
@@ -43,9 +43,10 @@ export abstract class RestApiEndpoint {
   }
 
   protected async handleError(ctx: Context, error: HttpError): Promise<void> {
-    return await this.errorHandler ?
-      this.errorHandler(ctx, error) :
-      ctx.throw(error.statusCode, error);
+    if (this.errorHandler) {
+      return await this.errorHandler(ctx, error);
+    }
+    ctx.throw(error.statusCode, error);
   }
 
   protected async handleResponse(ctx: Context, data: any): Promise<void> {

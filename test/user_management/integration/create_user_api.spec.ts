@@ -8,6 +8,7 @@ import * as Koa from 'koa';
 import { CreateUserBeforeHookData } from '../../../src/user_management/api/create_user_api';
 import { HttpError } from 'http-errors';
 import { Ninsho } from '../../../src/ninsho';
+import * as sinon from 'sinon';
 const config = require('../../../config.json').auth0;
 
 describe('create_user_api.spec.ts', function () {
@@ -105,20 +106,27 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', function (done) {
       // setup
-      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
-        return {
-          attachToUser: true,
+      const beforeHookData: CreateUserBeforeHookData = {
+        attachToUser: true,
+        data: {
           test: 'test',
-        };
+        },
+      };
+
+      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
+        return beforeHookData;
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
+        expect(ctx.state.beforeHookData.data.test).to.equal('test');
         ctx.body = ctx.state.data;
       };
 
+      const beforeHookSpy: sinon.SinonSpy = sinon.spy(beforeHook);
+
       app = new Koa();
       ninsho = new Ninsho(config);
-      ninsho.userApi.createUser.beforeHook = beforeHook;
+      ninsho.userApi.createUser.beforeHook = beforeHookSpy;
       ninsho.userApi.createUser.afterHook = afterHook;
       app.use(ninsho.mountApi());
 
@@ -132,6 +140,8 @@ describe('create_user_api.spec.ts', function () {
         password: 'testPassword123',
       })
       .then(async (response) => {
+        expect(beforeHookSpy.returned(Promise.resolve(beforeHookData))).to.be.true;
+
         expect(response.status).to.equal(200);
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
@@ -149,25 +159,27 @@ describe('create_user_api.spec.ts', function () {
         return {
           attachToUser: true,
           propsToAdd: ['address', 'married', 'mothersMaidenName', 'friends', 'age'],
-          age: 27,
-          address: {
-            state: 'Iowa',
-            street: 'random',
-            zip: '52246',
-          },
-          married: false,
-          mothersMaidenName: 'Smith',
-          friends: ['Jeremy', 'Chelsea', 'Alyssa', 'Max'],
-          access: {
-            token: 'test token',
-            expiration: 4800,
+          data: {
+            age: 27,
+            address: {
+              state: 'Iowa',
+              street: 'random',
+              zip: '52246',
+            },
+            married: false,
+            mothersMaidenName: 'Smith',
+            friends: ['Jeremy', 'Chelsea', 'Alyssa', 'Max'],
+            access: {
+              token: 'test token',
+              expiration: 4800,
+            },
           },
         };
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
-        expect(ctx.state.beforeHookData.access.token).to.equal('test token');
-        expect(ctx.state.beforeHookData.access.expiration).to.equal(4800);
+        expect(ctx.state.beforeHookData.data.access.token).to.equal('test token');
+        expect(ctx.state.beforeHookData.data.access.expiration).to.equal(4800);
         ctx.body = ctx.state.data;
       };
 
@@ -211,12 +223,14 @@ describe('create_user_api.spec.ts', function () {
       // setup
       const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
         return {
-          token: 'test token',
+          data: {
+            token: 'test token',
+          },
         };
       };
 
       const afterHook = async (ctx: Koa.Context): Promise<void> => {
-        expect(ctx.state.beforeHookData.token).to.equal('test token');
+        expect(ctx.state.beforeHookData.data.token).to.equal('test token');
         ctx.body = ctx.state.data;
       };
 
