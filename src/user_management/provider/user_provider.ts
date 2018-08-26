@@ -1,12 +1,6 @@
 import { CreateUserData, ManagementClient, User, UserData } from 'auth0';
 import { Auth0 } from '../../common/auth0';
-
-export interface DeleteUserData {
-  /**
-   * The id of the user to be deleted
-   */
-  id: string;
-}
+import { DeleteUserData } from '../../common/types';
 
 /**
  * The UserManagementController uses Auth0's nodejs client to make the appropriate web calls
