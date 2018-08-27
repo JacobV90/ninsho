@@ -1,4 +1,4 @@
-import { CreateUserData, ManagementClient, User, UserData } from 'auth0';
+import { CreateUserData, ManagementClient, User, UserData, ObjectWithId } from 'auth0';
 import { Auth0 } from '../../common/auth0';
 import { DeleteUserData } from '../../common/types';
 
@@ -29,9 +29,18 @@ export class UserManagementController{
     return user;
   }
 
-  public async deleteUser(userId: DeleteUserData): Promise<void> {
+  public async deleteUser(userId: ObjectWithId): Promise<void> {
     try {
       await this.managementClient.deleteUser(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async getUser(userId: ObjectWithId): Promise<User> {
+    try {
+      const response = await this.managementClient.getUser(userId);
+      return response;
     } catch (error) {
       throw error;
     }

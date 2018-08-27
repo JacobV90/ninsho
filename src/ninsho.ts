@@ -6,7 +6,11 @@ import {
 } from './user_management';
 import * as bodyParser from 'koa-bodyparser';
 import { Auth0, Auth0Config } from './common/auth0';
-import { CreateUserApi, DeleteUserApi } from './user_management/api/';
+import {
+  CreateUserApi,
+  DeleteUserApi,
+  GetUserApi,
+} from './user_management/api/';
 
 /**
  * The Ninsho class is the entry point to access all of the other classes that can be
@@ -29,7 +33,8 @@ export class Ninsho extends Koa {
     this.userManagement = new UserManagementController(this.auth0);
     this.userApi = new UserManagementApi(
       new CreateUserApi(this.userManagement),
-      new DeleteUserApi(this.userManagement)
+      new DeleteUserApi(this.userManagement),
+      new GetUserApi(this.userManagement),
     );
     this.prefix = prefix;
   }

@@ -108,6 +108,8 @@ describe('delete_user_api.spec.ts', function () {
       const response = await request(server).del('/users/' + user.user_id);
       expect(beforeHookSpy.returned(Promise.resolve(beforeHookData))).to.be.true;
       expect(response.status).to.equal(204);
+
+      await server.close();
     });
   });
 });

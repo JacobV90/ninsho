@@ -11,3 +11,15 @@ export interface DeleteUserData {
    */
   id: string;
 }
+
+export interface EmailOrId {
+  /**
+   * The id of the user
+   */
+  id?: string;
+
+  /**
+   * The email of the user
+   */
+  email?: string;
+}
