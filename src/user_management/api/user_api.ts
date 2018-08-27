@@ -2,7 +2,11 @@
 
 import * as Router from 'koa-router';
 import { Middleware, Context } from 'koa';
-import { CreateUserApi, DeleteUserApi } from './';
+import {
+  CreateUserApi,
+  DeleteUserApi,
+  GetUserApi,
+} from './';
 
 /**
  * The UserManagementApi class creates all of the routes associated with user management.
@@ -12,13 +16,18 @@ export class UserManagementApi {
 
   public createUser: CreateUserApi;
   public deleteUser: DeleteUserApi;
+  public getUser: GetUserApi;
 
   private router: Router;
 
-  constructor(createUserApi: CreateUserApi, deleteUserApi: DeleteUserApi) {
+  constructor(createUserApi: CreateUserApi,
+              deleteUserApi: DeleteUserApi,
+              getUserApi: GetUserApi,
+  ) {
     this.router = new Router();
     this.createUser = createUserApi;
     this.deleteUser = deleteUserApi;
+    this.getUser = getUserApi;
 
     this.router.post(
       '/users',
@@ -27,6 +36,10 @@ export class UserManagementApi {
     this.router.del(
       '/users/:id',
       (ctx: Context, next: () => Promise<any>) => deleteUserApi.invoke(ctx, next));
+
+    this.router.get(
+      '/users/:id',
+      (ctx: Context, next: () => Promise<any>) => getUserApi.invoke(ctx, next));
 
   }
 
