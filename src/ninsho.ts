@@ -10,6 +10,7 @@ import {
   CreateUserApi,
   DeleteUserApi,
   GetUserApi,
+  UpdateUserApi,
 } from './user_management/api/';
 
 /**
@@ -35,6 +36,7 @@ export class Ninsho extends Koa {
       new CreateUserApi(this.userManagement),
       new DeleteUserApi(this.userManagement),
       new GetUserApi(this.userManagement),
+      new UpdateUserApi(this.userManagement),
     );
     this.prefix = prefix;
   }

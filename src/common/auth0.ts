@@ -26,14 +26,13 @@ export class Auth0 {
   public authenticationClient: AuthenticationClient;
 
   /**
-   * The database connection name associated with the Auth0 application.
-   * Defaults to 'Username-Password-Authentication'
+   * The applications client id
    */
-  public connection: string;
+  public clientId: string;
 
   constructor(config: Auth0Config) {
-    this.connection = config.connection || 'Username-Password-Authentication';
     this.managementClient = new ManagementClient(config);
     this.authenticationClient = new AuthenticationClient(config);
+    this.clientId = config.clientId;
   }
 }

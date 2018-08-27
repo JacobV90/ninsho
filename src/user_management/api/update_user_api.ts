@@ -1,15 +1,17 @@
 /* tslint:disable:max-line-length*/
 
 import { UserManagementController } from '../index';
-import { CreateUserData, User } from 'auth0';
+import { User, UserData } from 'auth0';
 import { Context } from 'koa';
 import { AddDataToRequestApi } from '../../common/rest_api_endpoint';
+import { ObjectWithAny } from '../../common/types';
+import { mergeObject } from '../../common/utils';
 
 /**
  * The CreateUserApi class provides the functionality behind the create user api.
  * It can be used to set before and after hooks as well as a custom error handler.
  */
-export class CreateUserApi extends AddDataToRequestApi{
+export class UpdateUserApi extends AddDataToRequestApi{
 
   private controller: UserManagementController;
 
@@ -22,9 +24,13 @@ export class CreateUserApi extends AddDataToRequestApi{
     AddDataToRequestApi.validateBody(ctx);
     await this.handleBeforeHook(ctx);
 
+    const userData: UserData = {};
+    mergeObject(userData, ctx.request.body as ObjectWithAny, ['email', 'user_metadata', 'username']);
+    const userId: string = ctx.params.id;
     let user: User = {};
+
     try {
-      user = await this.controller.createUser(ctx.request.body as CreateUserData);
+      user = await this.controller.updateUser(userId, userData);
     } catch (error) {
       await this.handleError(ctx, error);
     }

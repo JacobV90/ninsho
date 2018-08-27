@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { UserManagementController } from '../../../src/user_management/';
 import { User } from 'auth0';
 import { Auth0Config, Auth0 } from '../../../src/common/auth0';
-import { randomEmail, randomPassword } from '../../helpers/random_generator';
+import { randomEmail, randomPassword, AuthConnections } from '../../helpers/';
 
 const config: Auth0Config = require('../../../config.json').auth0;
 
@@ -25,6 +25,7 @@ describe('get_user_provider.spec.ts', function () {
       const user: User = await userManagement.createUser({
         email,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       });
       if (user.user_id) {
         id = user.user_id;

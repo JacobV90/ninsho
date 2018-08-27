@@ -4,9 +4,11 @@
 import 'mocha';
 import { expect } from 'chai';
 import { UserManagementController } from '../../../src/user_management/';
-import { UserData, User } from 'auth0';
+import { User, CreateUserData } from 'auth0';
 import { HttpError } from 'http-errors';
 import { Auth0Config, Auth0 } from '../../../src/common/auth0';
+import { randomEmail, randomPassword, AuthConnections } from '../../helpers';
+
 const config: Auth0Config = require('../../../config.json').auth0;
 
 describe('create_user_provider.spec.ts', function () {
@@ -16,14 +18,15 @@ describe('create_user_provider.spec.ts', function () {
   });
 
   describe('Create User', () => {
-    const userOneEmail: string = 'jvtalon901@yahoo.com';
-    const userTwoEmail: string = 'testemail@gmail.com';
+    const userOneEmail: string = randomEmail();
+    const userTwoEmail: string = randomEmail();
     let userId: string;
 
     it('should create a new user provided valid parameters', async function () {
-      const userData: UserData = {
+      const userData: CreateUserData = {
         email: userOneEmail,
-        password: 'testPassword123',
+        password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       };
 
       const user: User = await userManagement.createUser(userData);
@@ -40,8 +43,9 @@ describe('create_user_provider.spec.ts', function () {
     });
 
     it('should NOT create a new user provided missing parameters (password)', function (done) {
-      const userData: UserData = {
+      const userData: CreateUserData = {
         email: userOneEmail,
+        connection: AuthConnections.defaultConnection,
       };
 
       userManagement.createUser(userData)
@@ -56,9 +60,10 @@ describe('create_user_provider.spec.ts', function () {
     });
 
     it('should NOT create a new user provided a password that does not meet strength requirements', function (done) {
-      const userData: UserData = {
+      const userData: CreateUserData = {
         email: userTwoEmail,
         password: 'test',
+        connection: AuthConnections.defaultConnection,
       };
 
       userManagement.createUser(userData)
@@ -73,8 +78,9 @@ describe('create_user_provider.spec.ts', function () {
     });
 
     it('should NOT create new user provided missing parameters (email)', function (done) {
-      const userData: UserData = {
-        password: 'testPassword123',
+      const userData: CreateUserData = {
+        password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       };
 
       userManagement.createUser(userData)
@@ -89,9 +95,10 @@ describe('create_user_provider.spec.ts', function () {
     });
 
     it('should NOT create new user provided an invalid email', function (done) {
-      const userData: UserData = {
+      const userData: CreateUserData = {
         email: 'thisisnotvalid',
-        password: 'testPassword123',
+        password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       };
 
       userManagement.createUser(userData)
@@ -106,6 +113,4 @@ describe('create_user_provider.spec.ts', function () {
       });
     });
   });
-
-
 });
