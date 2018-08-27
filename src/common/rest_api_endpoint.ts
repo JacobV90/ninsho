@@ -1,5 +1,7 @@
 import { Context } from 'koa';
 import { HttpError } from 'http-errors';
+import { mergeObject } from './utils';
+import { ObjectWithAny, AddBeforeHookDataToUser } from './types';
 
 /**
  * The RestApiEndpoint class utilizes the Koa framework to handle all
@@ -60,4 +62,24 @@ export abstract class RestApiEndpoint {
   }
 
   public abstract invoke(ctx: Context, next: () => Promise<any>): Promise<void>;
+}
+
+export abstract class AddDataToRequestApi extends RestApiEndpoint {
+  public beforeHook?: (ctx: Context) => Promise<AddBeforeHookDataToUser>;
+
+  protected async handleBeforeHook(ctx: Context): Promise<void> {
+    if (this.beforeHook) {
+      const beforeHookData: AddBeforeHookDataToUser = await this.beforeHook(ctx);
+      (ctx.state as ObjectWithAny)['beforeHookData'] = beforeHookData;
+      if (beforeHookData.attachToUser && beforeHookData.data) {
+        if (!(ctx.request.body as ObjectWithAny)['user_metadata']) {
+          (ctx.request.body as ObjectWithAny)['user_metadata'] = {};
+        }
+        mergeObject(
+          (ctx.request.body as ObjectWithAny)['user_metadata'],
+          beforeHookData.data,
+          beforeHookData.propsToAdd);
+      }
+    }
+  }
 }

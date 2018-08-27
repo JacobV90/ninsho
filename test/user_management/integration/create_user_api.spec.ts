@@ -5,11 +5,11 @@ import 'mocha';
 import { expect } from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import { CreateUserBeforeHookData } from '../../../src/user_management/api/';
+import { AddBeforeHookDataToUser } from '../../../src/common/types';
 import { HttpError } from 'http-errors';
 import { Ninsho } from '../../../src/ninsho';
 import * as sinon from 'sinon';
-import { randomEmail, randomPassword } from '../../helpers/random_generator';
+import { randomEmail, randomPassword, AuthConnections } from '../../helpers/';
 
 const config = require('../../../config.json').auth0;
 
@@ -40,6 +40,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: userOneEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       })
       .then(async (response) => {
         expect(response.status).to.equal(200);
@@ -58,6 +59,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: invalidEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       })
       .then((response) => {
         expect(response.status).to.equal(400);
@@ -75,6 +77,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: userOneEmail,
         password: 'test',
+        connection: AuthConnections.defaultConnection,
       })
       .then((response) => {
         expect(response.status).to.equal(400);
@@ -110,14 +113,14 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and attach all properties from the "beforeResult" object ', async function () {
       // SETUP
-      const beforeHookData: CreateUserBeforeHookData = {
+      const beforeHookData: AddBeforeHookDataToUser = {
         attachToUser: true,
         data: {
           test: 'test',
         },
       };
 
-      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<AddBeforeHookDataToUser> => {
         return beforeHookData;
       };
 
@@ -142,6 +145,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: userTwoEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       });
 
       expect(beforeHookSpy.returned(Promise.resolve(beforeHookData))).to.be.true;
@@ -156,7 +160,7 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and attach some properties from the "beforeResult" object', async function () {
       // SETUP
-      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<AddBeforeHookDataToUser> => {
         return {
           attachToUser: true,
           propsToAdd: ['address', 'married', 'mothersMaidenName', 'friends', 'age'],
@@ -198,6 +202,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: userThreeEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
         user_metadata: {
           middleName: 'marie',
         },
@@ -223,7 +228,7 @@ describe('create_user_api.spec.ts', function () {
 
     it('should create a new user provided valid parameters and not attach any properties from the "beforeResult" object ', async function () {
       // SETUP
-      const beforeHook = async (): Promise<CreateUserBeforeHookData> => {
+      const beforeHook = async (): Promise<AddBeforeHookDataToUser> => {
         return {
           data: {
             token: 'test token',
@@ -250,6 +255,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email: userFourEmail,
         password: 'testPassword123',
+        connection: AuthConnections.defaultConnection,
       });
 
       expect(response.status).to.equal(200);
@@ -286,6 +292,7 @@ describe('create_user_api.spec.ts', function () {
       .send({
         email,
         password,
+        connection: AuthConnections.defaultConnection,
       });
 
       expect(response.status).to.equal(400);

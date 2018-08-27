@@ -1,6 +1,12 @@
-import { CreateUserData, ManagementClient, User, UserData, ObjectWithId } from 'auth0';
+import {
+  CreateUserData,
+  ManagementClient,
+  User,
+  UserData,
+  ObjectWithId,
+  UpdateUserData,
+} from 'auth0';
 import { Auth0 } from '../../common/auth0';
-import { DeleteUserData } from '../../common/types';
 
 /**
  * The UserManagementController uses Auth0's nodejs client to make the appropriate web calls
@@ -9,24 +15,20 @@ import { DeleteUserData } from '../../common/types';
 export class UserManagementController{
 
   private managementClient: ManagementClient;
-  private connection: string;
+  private clientId: string;
 
   constructor(auth0: Auth0) {
     this.managementClient = auth0.managementClient;
-    this.connection = auth0.connection;
+    this.clientId = auth0.clientId;
     return this;
   }
 
-  public async createUser(userData: UserData): Promise<User> {
-    let user;
-    const createUserData: CreateUserData = userData as CreateUserData;
-    createUserData.connection = this.connection;
+  public async createUser(userData: CreateUserData): Promise<User> {
     try {
-      user = await this.managementClient.createUser(createUserData);
+      return await this.managementClient.createUser(userData);
     } catch (error) {
       throw error;
     }
-    return user;
   }
 
   public async deleteUser(userId: ObjectWithId): Promise<void> {
@@ -39,8 +41,25 @@ export class UserManagementController{
 
   public async getUser(userId: ObjectWithId): Promise<User> {
     try {
-      const response = await this.managementClient.getUser(userId);
-      return response;
+      return await this.managementClient.getUser(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async updateUser(id: string, userData: UserData): Promise<User> {
+    const updateUserData: UpdateUserData = userData;
+    if (userData.email || userData.phone_number || userData.username) {
+      updateUserData.client_id = this.clientId;
+      if (userData.email) {
+        updateUserData.verify_email = true;
+      }
+      if (userData.phone_number) {
+        updateUserData.verify_phone_number = true;
+      }
+    }
+    try {
+      return await this.managementClient.updateUser({ id }, updateUserData);
     } catch (error) {
       throw error;
     }

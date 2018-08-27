@@ -6,6 +6,8 @@ import { expect } from 'chai';
 import { UserManagementController } from '../../../src/user_management/';
 import { User } from 'auth0';
 import { Auth0Config, Auth0 } from '../../../src/common/auth0';
+import { AuthConnections } from '../../helpers';
+
 const config: Auth0Config = require('../../../config.json').auth0;
 
 describe('delete_user_provider.spec.ts', function () {
@@ -22,6 +24,7 @@ describe('delete_user_provider.spec.ts', function () {
       const user: User = await userManagement.createUser({
         email: 'vtalon007@yahoo.com',
         password: 'testPassword123',
+        connection: AuthConnections.defaultConnection,
       });
       if (user.user_id) {
         id = user.user_id;

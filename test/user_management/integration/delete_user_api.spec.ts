@@ -9,7 +9,7 @@ import { Ninsho } from '../../../src/ninsho';
 import * as sinon from 'sinon';
 import { User } from 'auth0';
 import { ObjectWithAny } from '../../../src/common/types';
-import { randomEmail, randomPassword } from '../../helpers/random_generator';
+import { randomEmail, randomPassword, AuthConnections } from '../../helpers/';
 
 const config = require('../../../config.json').auth0;
 
@@ -38,6 +38,7 @@ describe('delete_user_api.spec.ts', function () {
       const user: User =  await ninsho.userManagement.createUser({
         email: userOneEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       });
       const response = await request(server).del('/users/' + user.user_id);
       expect(response.status).to.equal(204);
@@ -102,6 +103,7 @@ describe('delete_user_api.spec.ts', function () {
       const user: User =  await ninsho.userManagement.createUser({
         email: userOneEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       });
       // end setup
 

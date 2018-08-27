@@ -6,6 +6,7 @@ import {
   CreateUserApi,
   DeleteUserApi,
   GetUserApi,
+  UpdateUserApi,
 } from './';
 
 /**
@@ -17,17 +18,20 @@ export class UserManagementApi {
   public createUser: CreateUserApi;
   public deleteUser: DeleteUserApi;
   public getUser: GetUserApi;
+  public updateUser: UpdateUserApi;
 
   private router: Router;
 
   constructor(createUserApi: CreateUserApi,
               deleteUserApi: DeleteUserApi,
               getUserApi: GetUserApi,
+              updateUserApi: UpdateUserApi,
   ) {
     this.router = new Router();
     this.createUser = createUserApi;
     this.deleteUser = deleteUserApi;
     this.getUser = getUserApi;
+    this.updateUser = updateUserApi;
 
     this.router.post(
       '/users',
@@ -41,6 +45,9 @@ export class UserManagementApi {
       '/users/:id',
       (ctx: Context, next: () => Promise<any>) => getUserApi.invoke(ctx, next));
 
+    this.router.patch(
+      '/users/:id',
+      (ctx: Context, next: () => Promise<any>) => updateUserApi.invoke(ctx, next));
   }
 
   /**

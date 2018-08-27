@@ -7,7 +7,7 @@ import * as request from 'supertest';
 import * as Koa from 'koa';
 import { Ninsho } from '../../../src/ninsho';
 import { User } from 'auth0';
-import { randomEmail, randomPassword } from '../../helpers/random_generator';
+import { randomEmail, randomPassword, AuthConnections } from '../../helpers/';
 const config = require('../../../config.json').auth0;
 
 describe('get_user_api.spec.ts', function () {
@@ -35,6 +35,7 @@ describe('get_user_api.spec.ts', function () {
       const user: User = await ninsho.userManagement.createUser({
         email: userOneEmail,
         password: randomPassword(),
+        connection: AuthConnections.defaultConnection,
       });
       const response = await request(server).get('/users/' + user.user_id);
       expect(response.status).to.equal(200);
@@ -54,14 +55,5 @@ describe('get_user_api.spec.ts', function () {
       });
     });
 
-    it('should NOT get a user provided no user id', function (done) {
-      request(server)
-      .get('/users/')
-      .then((response) => {
-        expect(response.status).to.equal(404);
-        expect(response.text).to.equal('Not Found');
-        done();
-      });
-    });
   });
 });
