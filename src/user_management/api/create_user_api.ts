@@ -3,7 +3,7 @@
 import { UserManagementController } from '../index';
 import { CreateUserData, User } from 'auth0';
 import { Context } from 'koa';
-import { AddDataToRequestApi } from '../../common/rest_api_endpoint';
+import { AddDataToRequestApi, HttpAction } from '../../common/rest_api_endpoint';
 
 /**
  * The CreateUserApi class provides the functionality behind the create user api.
@@ -14,11 +14,11 @@ export class CreateUserApi extends AddDataToRequestApi{
   private controller: UserManagementController;
 
   constructor(controller: UserManagementController) {
-    super();
+    super('/users', HttpAction.POST);
     this.controller = controller;
   }
 
-  public async invoke(ctx: Context, next: () => Promise<any>): Promise<void> {
+  protected async invoke(ctx: Context, next: () => Promise<any>): Promise<void> {
     AddDataToRequestApi.validateBody(ctx);
     await this.handleBeforeHook(ctx);
 

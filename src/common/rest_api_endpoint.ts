@@ -1,7 +1,15 @@
-import { Context } from 'koa';
+import { Context, Middleware } from 'koa';
 import { HttpError } from 'http-errors';
 import { mergeObject } from './utils';
 import { ObjectWithAny, AddBeforeHookDataToUser } from './types';
+import * as Router from 'koa-router';
+
+export enum HttpAction {
+  GET,
+  PATCH,
+  POST,
+  DEL,
+}
 
 /**
  * The RestApiEndpoint class utilizes the Koa framework to handle all
@@ -17,14 +25,14 @@ export abstract class RestApiEndpoint {
    * auth0 operation. Data returned by this function will be added to the context state.
    * e.g. (ctx.state.beforeHookData)
    */
-  public beforeHook?: (ctx: Context) => Promise<any>;
+  public beforeInvoke?: (ctx: Context) => Promise<any>;
 
   /**
    * An after hook function can be set that will run after performing the requested auth0 operation.
    * Data returned by the before hook can be accessed here. If specified, the after hook function
    * must handle responses back to the client.
    */
-  public afterHook?: (ctx: Context) => Promise<void>;
+  public afterInvoke?: (ctx: Context) => Promise<void>;
 
   /**
    * An error handler function can be set that will run if the requested auth0 operation failed.
@@ -32,15 +40,28 @@ export abstract class RestApiEndpoint {
    */
   public errorHandler?: (ctx: Context, error: HttpError) => Promise<void>;
 
+  protected router: Router;
+
   public static validateBody(ctx: Context): void {
     if (!ctx.request.body || Object.keys(ctx.request.body).length < 1) {
       ctx.throw(400, 'request body is empty');
     }
   }
 
+  constructor(route: string, action: HttpAction) {
+    this.router = new Router();
+    this.configureRouter(route, action);
+  }
+
+  protected abstract invoke(ctx: Context, next: () => Promise<any>): Promise<void>;
+
+  public getRouter(): Middleware {
+    return this.router.routes();
+  }
+
   protected async handleBeforeHook(ctx: Context): Promise<void> {
-    if (this.beforeHook) {
-      (ctx.state as any)['beforeHookData'] = await this.beforeHook(ctx);
+    if (this.beforeInvoke) {
+      (ctx.state as any)['beforeHookData'] = await this.beforeInvoke(ctx);
     }
   }
 
@@ -52,24 +73,50 @@ export abstract class RestApiEndpoint {
   }
 
   protected async handleResponse(ctx: Context, data?: any): Promise<void> {
-    if (this.afterHook) {
+    if (this.afterInvoke) {
       if (data) {
         (ctx.state as any)['data'] = data;
       }
-      return await this.afterHook(ctx);
+      return await this.afterInvoke(ctx);
     }
     ctx.body = data;
   }
 
-  public abstract invoke(ctx: Context, next: () => Promise<any>): Promise<void>;
+  private configureRouter(route: string, action: HttpAction) {
+    switch (action) {
+      case HttpAction.DEL:
+        this.router.del(
+          route,
+          (ctx: Context, next: () => Promise<any>) => this.invoke(ctx, next));
+        break;
+
+      case HttpAction.GET:
+        this.router.get(
+          route,
+          (ctx: Context, next: () => Promise<any>) => this.invoke(ctx, next));
+        break;
+
+      case HttpAction.POST:
+        this.router.post(
+          route,
+          (ctx: Context, next: () => Promise<any>) => this.invoke(ctx, next));
+        break;
+
+      case HttpAction.PATCH:
+        this.router.patch(
+          route,
+          (ctx: Context, next: () => Promise<any>) => this.invoke(ctx, next));
+        break;
+    }
+  }
 }
 
 export abstract class AddDataToRequestApi extends RestApiEndpoint {
-  public beforeHook?: (ctx: Context) => Promise<AddBeforeHookDataToUser>;
+  public beforeInvoke?: (ctx: Context) => Promise<AddBeforeHookDataToUser>;
 
   protected async handleBeforeHook(ctx: Context): Promise<void> {
-    if (this.beforeHook) {
-      const beforeHookData: AddBeforeHookDataToUser = await this.beforeHook(ctx);
+    if (this.beforeInvoke) {
+      const beforeHookData: AddBeforeHookDataToUser = await this.beforeInvoke(ctx);
       (ctx.state as ObjectWithAny)['beforeHookData'] = beforeHookData;
       if (beforeHookData.attachToUser && beforeHookData.data) {
         if (!(ctx.request.body as ObjectWithAny)['user_metadata']) {

@@ -1,13 +1,8 @@
 /* tslint:disable:max-line-length*/
 
 import * as Router from 'koa-router';
-import { Middleware, Context } from 'koa';
-import {
-  CreateUserApi,
-  DeleteUserApi,
-  GetUserApi,
-  UpdateUserApi,
-} from './';
+import { Middleware } from 'koa';
+import { RestApiEndpoint } from '../../common/rest_api_endpoint';
 
 /**
  * The UserManagementApi class creates all of the routes associated with user management.
@@ -15,17 +10,17 @@ import {
  */
 export class UserManagementApi {
 
-  public createUser: CreateUserApi;
-  public deleteUser: DeleteUserApi;
-  public getUser: GetUserApi;
-  public updateUser: UpdateUserApi;
+  public createUser: RestApiEndpoint;
+  public deleteUser: RestApiEndpoint;
+  public getUser: RestApiEndpoint;
+  public updateUser: RestApiEndpoint;
 
   private router: Router;
 
-  constructor(createUserApi: CreateUserApi,
-              deleteUserApi: DeleteUserApi,
-              getUserApi: GetUserApi,
-              updateUserApi: UpdateUserApi,
+  constructor(createUserApi: RestApiEndpoint,
+              deleteUserApi: RestApiEndpoint,
+              getUserApi: RestApiEndpoint,
+              updateUserApi: RestApiEndpoint,
   ) {
     this.router = new Router();
     this.createUser = createUserApi;
@@ -33,21 +28,10 @@ export class UserManagementApi {
     this.getUser = getUserApi;
     this.updateUser = updateUserApi;
 
-    this.router.post(
-      '/users',
-      (ctx: Context, next: () => Promise<any>) => createUserApi.invoke(ctx, next));
-
-    this.router.del(
-      '/users/:id',
-      (ctx: Context, next: () => Promise<any>) => deleteUserApi.invoke(ctx, next));
-
-    this.router.get(
-      '/users/:id',
-      (ctx: Context, next: () => Promise<any>) => getUserApi.invoke(ctx, next));
-
-    this.router.patch(
-      '/users/:id',
-      (ctx: Context, next: () => Promise<any>) => updateUserApi.invoke(ctx, next));
+    this.router.use(this.createUser.getRouter());
+    this.router.use(this.deleteUser.getRouter());
+    this.router.use(this.getUser.getRouter());
+    this.router.use(this.updateUser.getRouter());
   }
 
   /**
