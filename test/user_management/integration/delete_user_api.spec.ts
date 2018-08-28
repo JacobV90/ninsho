@@ -94,8 +94,8 @@ describe('delete_user_api.spec.ts', function () {
 
       app = new Koa();
       ninsho = new Ninsho(config);
-      ninsho.userApi.deleteUser.beforeHook = beforeHookSpy;
-      ninsho.userApi.deleteUser.afterHook = afterHook;
+      ninsho.userApi.deleteUser.beforeInvoke = beforeHookSpy;
+      ninsho.userApi.deleteUser.afterInvoke = afterHook;
       app.use(ninsho.mountApi());
 
       server = app.listen(3000);

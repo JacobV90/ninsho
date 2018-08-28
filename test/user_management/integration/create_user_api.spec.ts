@@ -7,9 +7,12 @@ import * as request from 'supertest';
 import * as Koa from 'koa';
 import { AddBeforeHookDataToUser } from '../../../src/common/types';
 import { HttpError } from 'http-errors';
-import { Ninsho } from '../../../src/ninsho';
 import * as sinon from 'sinon';
 import { randomEmail, randomPassword, AuthConnections } from '../../helpers/';
+import { CreateUserApi } from '../../../src/user_management/api';
+import { UserManagementController } from '../../../src/user_management';
+import { Auth0 } from '../../../src/common/auth0';
+import * as bodyParser from 'koa-bodyparser';
 
 const config = require('../../../config.json').auth0;
 
@@ -19,14 +22,17 @@ describe('create_user_api.spec.ts', function () {
   describe('Create User Api', function () {
 
     let app: Koa;
-    let ninsho: Ninsho;
     let server: any;
+    let createUserApi: CreateUserApi;
+    let userController: UserManagementController;
     const userOneEmail: string = randomEmail();
 
     before(() => {
       app = new Koa();
-      ninsho = new Ninsho(config);
-      app.use(ninsho.mountApi());
+      userController = new UserManagementController(new Auth0(config));
+      createUserApi = new CreateUserApi(userController);
+      app.use(bodyParser());
+      app.use(createUserApi.getRouter());
       server = app.listen(3000);
     });
 
@@ -47,7 +53,7 @@ describe('create_user_api.spec.ts', function () {
         expect(response.body.email).to.equal(userOneEmail);
         expect(response.body.user_id).to.not.be.undefined;
 
-        await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+        await userController.deleteUser({ id: response.body.user_id });
         done();
       });
     });
@@ -105,7 +111,8 @@ describe('create_user_api.spec.ts', function () {
   describe('Create User Api w/Hooks', () => {
 
     let app: Koa;
-    let ninsho: Ninsho;
+    let createUserApi: CreateUserApi;
+    let userController: UserManagementController;
     let server: any;
     const userTwoEmail: string = randomEmail();
     const userThreeEmail: string = randomEmail();
@@ -132,11 +139,12 @@ describe('create_user_api.spec.ts', function () {
       const beforeHookSpy: sinon.SinonSpy = sinon.spy(beforeHook);
 
       app = new Koa();
-      ninsho = new Ninsho(config);
-      ninsho.userApi.createUser.beforeHook = beforeHookSpy;
-      ninsho.userApi.createUser.afterHook = afterHook;
-      app.use(ninsho.mountApi());
-
+      userController = new UserManagementController(new Auth0(config));
+      createUserApi = new CreateUserApi(userController);
+      createUserApi.beforeInvoke = beforeHookSpy;
+      createUserApi.afterInvoke = afterHook;
+      app.use(bodyParser());
+      app.use(createUserApi.getRouter());
       server = app.listen(3000);
       // END SETUP
 
@@ -154,7 +162,7 @@ describe('create_user_api.spec.ts', function () {
       expect(response.body.user_id).to.not.be.undefined;
       expect(response.body.user_metadata.test).to.equal('test');
 
-      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await userController.deleteUser({ id: response.body.user_id });
       await server.close();
     });
 
@@ -189,10 +197,12 @@ describe('create_user_api.spec.ts', function () {
       };
 
       app = new Koa();
-      ninsho = new Ninsho(config);
-      ninsho.userApi.createUser.beforeHook = beforeHook;
-      ninsho.userApi.createUser.afterHook = afterHook;
-      app.use(ninsho.mountApi());
+      userController = new UserManagementController(new Auth0(config));
+      createUserApi = new CreateUserApi(userController);
+      createUserApi.beforeInvoke = beforeHook;
+      createUserApi.afterInvoke = afterHook;
+      app.use(bodyParser());
+      app.use(createUserApi.getRouter());
 
       server = app.listen(3000);
       // END SETUP
@@ -222,7 +232,7 @@ describe('create_user_api.spec.ts', function () {
       expect(response.body.user_metadata.friends.length).to.equal(4);
       expect(response.body.user_metadata.access).to.be.undefined;
 
-      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await userController.deleteUser({ id: response.body.user_id });
       await server.close();
     });
 
@@ -242,10 +252,12 @@ describe('create_user_api.spec.ts', function () {
       };
 
       app = new Koa();
-      ninsho = new Ninsho(config);
-      ninsho.userApi.createUser.beforeHook = beforeHook;
-      ninsho.userApi.createUser.afterHook = afterHook;
-      app.use(ninsho.mountApi());
+      userController = new UserManagementController(new Auth0(config));
+      createUserApi = new CreateUserApi(userController);
+      createUserApi.beforeInvoke = beforeHook;
+      createUserApi.afterInvoke = afterHook;
+      app.use(bodyParser());
+      app.use(createUserApi.getRouter());
 
       server = app.listen(3000);
       // END SETUP
@@ -263,7 +275,7 @@ describe('create_user_api.spec.ts', function () {
       expect(response.body.user_id).to.not.be.undefined;
       expect(response.body.user_metadata).to.be.undefined;
 
-      await ninsho.userManagement.deleteUser({ id: response.body.user_id });
+      await userController.deleteUser({ id: response.body.user_id });
       await server.close();
     });
   });
@@ -279,10 +291,12 @@ describe('create_user_api.spec.ts', function () {
       const email: string = 'not valid';
       const password: string = 'testPassword123';
 
-      const app: Koa = new Koa();
-      const ninsho: Ninsho = new Ninsho(config);
-      ninsho.userApi.createUser.errorHandler = errorHandler;
-      app.use(ninsho.mountApi());
+      const app = new Koa();
+      const userController = new UserManagementController(new Auth0(config));
+      const createUserApi = new CreateUserApi(userController);
+      createUserApi.errorHandler = errorHandler;
+      app.use(bodyParser());
+      app.use(createUserApi.getRouter());
 
       const server = app.listen(3000);
       // end setup

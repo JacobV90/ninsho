@@ -3,7 +3,7 @@
 import { UserManagementController } from '../index';
 import { DeleteUserData } from '../../common/types';
 import { Context } from 'koa';
-import { RestApiEndpoint } from '../../common/rest_api_endpoint';
+import { HttpAction, RestApiEndpoint } from '../../common/rest_api_endpoint';
 
 /**
  * The DeleteUserApi class provides the functionality behind the delete user api.
@@ -16,7 +16,7 @@ export class DeleteUserApi extends RestApiEndpoint{
   private controller: UserManagementController;
 
   constructor(controller: UserManagementController) {
-    super();
+    super('/users/:id', HttpAction.DEL);
     this.controller = controller;
   }
 

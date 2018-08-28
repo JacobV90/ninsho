@@ -3,7 +3,7 @@
 import { UserManagementController } from '../index';
 import { User, UserData } from 'auth0';
 import { Context } from 'koa';
-import { AddDataToRequestApi } from '../../common/rest_api_endpoint';
+import { AddDataToRequestApi, HttpAction } from '../../common/rest_api_endpoint';
 import { ObjectWithAny } from '../../common/types';
 import { mergeObject } from '../../common/utils';
 
@@ -16,7 +16,7 @@ export class UpdateUserApi extends AddDataToRequestApi{
   private controller: UserManagementController;
 
   constructor(controller: UserManagementController) {
-    super();
+    super('/users/:id', HttpAction.PATCH);
     this.controller = controller;
   }
 

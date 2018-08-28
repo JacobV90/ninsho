@@ -2,7 +2,7 @@
 
 import { UserManagementController } from '../index';
 import { Context } from 'koa';
-import { RestApiEndpoint } from '../../common/rest_api_endpoint';
+import {HttpAction, RestApiEndpoint} from '../../common/rest_api_endpoint';
 import { User } from 'auth0';
 
 /**
@@ -16,7 +16,7 @@ export class GetUserApi extends RestApiEndpoint{
   private controller: UserManagementController;
 
   constructor(controller: UserManagementController) {
-    super();
+    super('/users/:id', HttpAction.GET);
     this.controller = controller;
   }
 
